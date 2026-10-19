@@ -25,7 +25,7 @@ jobs:
           cmake -S . -B build -A x64 `
             -DLIBUSB_1_INCLUDE_DIR="$v/include/libusb-1.0" `
             -DLIBUSB_1_LIBRARY="$v/lib/libusb-1.0.lib" `
-            -DBUILD_EXAMPLES=OFF -DBUILD_FAKENECT=OFF -DBUILD_C_SYNC=OFF
+            -DBUILD_EXAMPLES=OFF -DBUILD_FAKENECT=OFF -DBUILD_C_SYNC=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
       - name: Build
         run: cmake --build build --config Release
