@@ -1,0 +1,44 @@
+name: obs-kinect-freenect
+
+on:
+  push:
+    branches: [obs-kinect-freenect]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      # obs-kinect v1.0-rc2's freenect backend imports functions that only exist in this fork commit.
+      - uses: actions/checkout@v4
+        with:
+          repository: SirLynix/libfreenect
+          ref: 5e2cd8e18877fbe7ef4c863161e90873c06a9180
+
+      - name: Install dependencies
+        run: vcpkg install libusb --triplet x64-windows
+
+      - name: Configure
+        shell: pwsh
+        run: |
+          $v = "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows"
+          cmake -S . -B build -A x64 `
+            -DLIBUSB_1_INCLUDE_DIR="$v/include/libusb-1.0" `
+            -DLIBUSB_1_LIBRARY="$v/lib/libusb-1.0.lib" `
+            -DBUILD_EXAMPLES=OFF -DBUILD_FAKENECT=OFF -DBUILD_C_SYNC=OFF
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Collect
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory out | Out-Null
+          Get-ChildItem build -Recurse -Filter freenect.dll | Copy-Item -Destination out/ -Force
+          Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/libusb-1.0.dll" out/
+          Get-ChildItem out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: freenect-sirlynix-windows-x64
+          path: out/
