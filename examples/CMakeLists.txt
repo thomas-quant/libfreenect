@@ -18,6 +18,13 @@ find_package(Threads)
 find_package(OpenGL COMPONENTS OpenGL)
 find_package(GLUT)
 
+if (Threads_FOUND)
+  add_executable(freenect-session session.c)
+  target_include_directories(freenect-session PRIVATE ${THREADS_PTHREADS_INCLUDE_DIR})
+  target_link_libraries(freenect-session freenect ${CMAKE_THREAD_LIBS_INIT})
+  install(TARGETS freenect-session DESTINATION bin)
+endif ()
+
 if (Threads_FOUND AND OpenGL_OpenGL_FOUND AND GLUT_FOUND)
   include_directories(${THREADS_PTHREADS_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${GLUT_INCLUDE_DIR})
 

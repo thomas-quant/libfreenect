@@ -1,0 +1,31 @@
+name: linux
+
+on:
+  push:
+    branches: [windows-build]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev freeglut3-dev libxmu-dev libxi-dev
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_FAKENECT=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Session recorder round-trip through fakenect
+        run: python3 .github/scripts/session_roundtrip.py build "$RUNNER_TEMP/roundtrip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libfreenect-linux-x64
+          path: |
+            build/bin/
+            build/lib/
