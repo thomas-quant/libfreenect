@@ -451,6 +451,21 @@ int main(int argc, char **argv)
 		       "captures on command.\n");
 		return 1;
 	}
+	freenect_context *ctx;
+	freenect_device *dev;
+	if (freenect_init(&ctx, NULL)) {
+		printf("freenect_init failed\n");
+		return 1;
+	}
+	freenect_set_log_callback(ctx, on_log);
+	freenect_set_log_level(ctx, FREENECT_LOG_INFO);
+	freenect_select_subdevices(ctx, (freenect_device_flags)(FREENECT_DEVICE_MOTOR | FREENECT_DEVICE_CAMERA));
+	if (freenect_open_device(ctx, &dev, 0)) {
+		printf("no Kinect found\n");
+		freenect_shutdown(ctx);
+		return 1;
+	}
+
 	snprintf(session_dir, sizeof session_dir, "%s", argv[1]);
 	if (make_dir(session_dir) != 0) {
 		printf("cannot create %s (exists already?) - use a new directory\n", session_dir);
@@ -469,21 +484,6 @@ int main(int argc, char **argv)
 
 	for (int i = 0; i < QCAP; i++)
 		queue[i].buf = malloc(RGB_BYTES);
-
-	freenect_context *ctx;
-	freenect_device *dev;
-	if (freenect_init(&ctx, NULL)) {
-		printf("freenect_init failed\n");
-		return 1;
-	}
-	freenect_set_log_callback(ctx, on_log);
-	freenect_set_log_level(ctx, FREENECT_LOG_INFO);
-	freenect_select_subdevices(ctx, (freenect_device_flags)(FREENECT_DEVICE_MOTOR | FREENECT_DEVICE_CAMERA));
-	if (freenect_open_device(ctx, &dev, 0)) {
-		printf("no Kinect found\n");
-		freenect_shutdown(ctx);
-		return 1;
-	}
 
 	freenect_registration reg = freenect_copy_registration(dev);
 	memcpy(raw_to_mm, reg.raw_to_mm_shift, sizeof raw_to_mm);
